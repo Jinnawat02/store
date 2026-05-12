@@ -1,14 +1,21 @@
-<%= form_with model: product do |form| %>
+<%= form_with model: product, class: "space-y-5" do |form| %>
   <% if form.object.errors.any? %>
-    <p class="error"><%= form.object.errors.full_messages.first %></p>
+    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+      <ul class="list-disc list-inside text-sm">
+        <% form.object.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
   <% end %>
 
-  <div>
-    <%= form.label :name %>
-    <%= form.text_field :name %>
+  <div class="flex flex-col gap-1">
+    <%= form.label :name, "Product Name", class: "text-sm font-semibold text-blue-700" %>
+    <%= form.text_field :name, class: "w-full border border-blue-300 rounded-lg px-4 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500", placeholder: "Enter product name" %>
   </div>
 
-  <div>
-    <%= form.submit %>
+  <div class="flex items-center gap-3 pt-2">
+    <%= form.submit "Save Product", class: "bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg cursor-pointer transition" %>
+    <%= link_to "Cancel", products_path, class: "text-gray-500 hover:text-gray-700 font-medium transition" %>
   </div>
 <% end %>

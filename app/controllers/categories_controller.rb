@@ -6,6 +6,7 @@ class CategoriesController < ApplicationController
   end
 
   def show
+    @products = @category.products.order(:id)
   end
 
   def new

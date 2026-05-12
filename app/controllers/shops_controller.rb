@@ -6,6 +6,7 @@ class ShopsController < ApplicationController
   end
 
   def show
+    @products = @shop.products.order(:id)
   end
 
   def new
