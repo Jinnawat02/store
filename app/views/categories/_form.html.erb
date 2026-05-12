@@ -14,6 +14,24 @@
     <%= form.text_field :name, class: "w-full border border-blue-300 rounded-lg px-4 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500", placeholder: "Enter category name" %>
   </div>
 
+  <div class="flex flex-col gap-2">
+    <%= form.label :product_ids, "Products", class: "text-sm font-semibold text-blue-700" %>
+    <div class="border border-blue-200 rounded-lg p-3 bg-blue-50 max-h-48 overflow-y-auto space-y-2">
+      <% @all_products.each do |product| %>
+        <label class="flex items-center gap-2 cursor-pointer">
+          <%= check_box_tag "category[product_ids][]", product.id,
+              category.product_ids.include?(product.id),
+              id: "category_product_#{product.id}",
+              class: "w-4 h-4 text-blue-600 rounded border-blue-300 focus:ring-blue-500" %>
+          <span class="text-gray-800 text-sm"><%= product.name %></span>
+        </label>
+      <% end %>
+      <% if @all_products.empty? %>
+        <p class="text-gray-400 text-sm">No products available.</p>
+      <% end %>
+    </div>
+  </div>
+
   <div class="flex items-center gap-3 pt-2">
     <%= form.submit "Save Category", class: "bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg cursor-pointer transition" %>
     <%= link_to "Cancel", categories_path, class: "text-gray-500 hover:text-gray-700 font-medium transition" %>
