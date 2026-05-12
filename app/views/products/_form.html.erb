@@ -14,6 +14,21 @@
     <%= form.text_field :name, class: "w-full border border-blue-300 rounded-lg px-4 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500", placeholder: "Enter product name" %>
   </div>
 
+  <div class="flex flex-col gap-1">
+    <%= form.label :category_id, "Category", class: "text-sm font-semibold text-blue-700" %>
+    <%= form.collection_select :category_id, @categories, :id, :name,
+        { include_blank: "— No Category —" },
+        { class: "w-full border border-blue-300 rounded-lg px-4 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500" } %>
+  </div>
+
+  <div class="flex flex-col gap-1">
+    <%= form.label :shop_ids, "Shops", class: "text-sm font-semibold text-blue-700" %>
+    <%= form.collection_select :shop_ids, @shops, :id, :name,
+        { include_blank: false },
+        { multiple: true, class: "w-full border border-blue-300 rounded-lg px-4 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 h-32" } %>
+    <span class="text-xs text-gray-400">Hold Ctrl / Cmd to select multiple shops</span>
+  </div>
+
   <div class="flex items-center gap-3 pt-2">
     <%= form.submit "Save Product", class: "bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg cursor-pointer transition" %>
     <%= link_to "Cancel", products_path, class: "text-gray-500 hover:text-gray-700 font-medium transition" %>

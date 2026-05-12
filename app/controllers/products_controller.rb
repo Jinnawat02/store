@@ -10,6 +10,8 @@ class ProductsController < ApplicationController
 
   def new
     @product = Product.new
+    @categories = Category.order(:name)
+    @shops = Shop.order(:name)
   end
 
   def create
@@ -22,6 +24,8 @@ class ProductsController < ApplicationController
   end
 
   def edit
+    @categories = Category.order(:name)
+    @shops = Shop.order(:name)
   end
 
   def update
@@ -43,6 +47,6 @@ class ProductsController < ApplicationController
   end
 
   def product_param
-    params.expect(product: [ :name ])
+    params.expect(product: [ :name, :category_id, shop_ids: [] ])
   end
 end
