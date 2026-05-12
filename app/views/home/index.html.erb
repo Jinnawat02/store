@@ -4,12 +4,12 @@
   <!-- Summary Cards -->
   <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
     <!-- Products Card -->
-    <div class="bg-white rounded-2xl shadow-md p-6 border-t-4 border-blue-500">
+    <div class="bg-white rounded-2xl shadow-md p-6 border-t-4 border-blue-500 flex flex-col h-72">
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-lg font-semibold text-blue-700">Products</h2>
         <span class="text-4xl font-bold text-blue-600"><%= @products_count %></span>
       </div>
-      <ul class="divide-y divide-blue-100 mb-4">
+      <ul class="divide-y divide-blue-100 mb-4 overflow-y-auto flex-1">
         <% @recent_products.each do |product| %>
           <li class="py-1 text-sm text-gray-700">
             <%= link_to product.name, product_path(product), class: "hover:text-blue-600 transition" %>
@@ -23,12 +23,12 @@
     </div>
 
     <!-- Categories Card -->
-    <div class="bg-white rounded-2xl shadow-md p-6 border-t-4 border-indigo-500">
+    <div class="bg-white rounded-2xl shadow-md p-6 border-t-4 border-indigo-500 flex flex-col h-72">
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-lg font-semibold text-indigo-700">Categories</h2>
         <span class="text-4xl font-bold text-indigo-600"><%= @categories_count %></span>
       </div>
-      <ul class="divide-y divide-indigo-100 mb-4">
+      <ul class="divide-y divide-indigo-100 mb-4 overflow-y-auto flex-1">
         <% @recent_categories.each do |category| %>
           <li class="py-1 text-sm text-gray-700">
             <%= link_to category.name, category_path(category), class: "hover:text-indigo-600 transition" %>
@@ -42,12 +42,12 @@
     </div>
 
     <!-- Shops Card -->
-    <div class="bg-white rounded-2xl shadow-md p-6 border-t-4 border-sky-500">
+    <div class="bg-white rounded-2xl shadow-md p-6 border-t-4 border-sky-500 flex flex-col h-72">
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-lg font-semibold text-sky-700">Shops</h2>
         <span class="text-4xl font-bold text-sky-600"><%= @shops_count %></span>
       </div>
-      <ul class="divide-y divide-sky-100 mb-4">
+      <ul class="divide-y divide-sky-100 mb-4 overflow-y-auto flex-1">
         <% @recent_shops.each do |shop| %>
           <li class="py-1 text-sm text-gray-700">
             <%= link_to shop.name, shop_path(shop), class: "hover:text-sky-600 transition" %>
