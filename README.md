@@ -8,11 +8,13 @@ UI: **Tailwind CSS** · blue/white theme · `rounded-2xl` cards.
 ## Table of Contents
 
 1. [Project Setup](#project-setup)
-2. [Devise — Authentication](#1-devise--authentication)
-3. [Rolify — Roles](#2-rolify--roles)
-4. [CanCanCan — Authorization](#3-cancancan--authorization)
-5. [Paranoia — Soft Delete](#4-paranoia--soft-delete)
-6. [PaperTrail — Audit Log](#5-papertrail--audit-log)
+2. [Gems](#gems)
+   - [Devise — Authentication](#1-devise--authentication)
+   - [Rolify — Roles](#2-rolify--roles)
+   - [CanCanCan — Authorization](#3-cancancan--authorization)
+   - [Paranoia — Soft Delete](#4-paranoia--soft-delete)
+   - [PaperTrail — Audit Log](#5-papertrail--audit-log)
+3. [API — Products CRUD](#6-api-tutorial--products-crud)
 
 ---
 
@@ -23,6 +25,10 @@ bundle install
 bin/rails db:create db:migrate db:seed
 bin/dev
 ```
+
+---
+
+## Gems
 
 ---
 
@@ -525,5 +531,286 @@ old.save!   # rollback to that state
 | CanCanCan | `rails g cancan:ability` | `can`, `load_and_authorize_resource`, `can?` |
 | Paranoia | add `deleted_at` migration | `acts_as_paranoid`, `restore`, `only_deleted` |
 | PaperTrail | `rails g paper_trail:install` | `has_paper_trail`, `versions`, `reify` |
+
+---
+
+## 6. API Tutorial — Products CRUD
+
+A versioned JSON API (`/api/v1/products`) with no extra gems — pure Rails.
+
+---
+
+### Step 1 — Add routes
+
+```ruby
+# config/routes.rb
+Rails.application.routes.draw do
+  root "home#index"
+  resources :products
+  resources :categories
+  resources :shops
+
+  namespace :api do
+    namespace :v1 do
+      resources :products, only: [:index, :show, :create, :update, :destroy]
+    end
+  end
+end
+```
+
+---
+
+### Step 2 — Create the base API controller
+
+```ruby
+# app/controllers/api/v1/base_controller.rb
+module Api
+  module V1
+    class BaseController < ActionController::API
+    end
+  end
+end
+```
+
+Inheriting from `ActionController::API` instead of `ActionController::Base` strips out browser-only middleware (sessions, cookies, CSRF protection) — suitable for a JSON API.
+
+---
+
+### Step 3 — Create the products controller skeleton
+
+```ruby
+# app/controllers/api/v1/products_controller.rb
+module Api
+  module V1
+    class ProductsController < BaseController
+      before_action :set_product, only: [:show, :update, :destroy]
+
+      private
+
+      def set_product
+        @product = Product.find(params[:id])
+      rescue ActiveRecord::RecordNotFound
+        render json: { error: "Product not found" }, status: :not_found
+      end
+
+      def product_params
+        params.require(:product).permit(:name, :category_id)
+      end
+    end
+  end
+end
+```
+
+`before_action :set_product` runs before `show`, `update`, and `destroy` so `@product` is always available in those actions.
+
+---
+
+### Step 4 — GET /api/v1/products (index)
+
+Return all products as JSON.
+
+```ruby
+# GET /api/v1/products
+def index
+  @products = Product.all
+  render json: @products
+end
+```
+
+**curl**
+```bash
+curl http://localhost:3000/api/v1/products
+```
+
+**Response** `200 OK`
+```json
+[
+  { "id": 1, "name": "Widget", "category_id": 1, "created_at": "...", "updated_at": "..." },
+  { "id": 2, "name": "Gadget", "category_id": 2, "created_at": "...", "updated_at": "..." }
+]
+```
+
+---
+
+### Step 5 — GET /api/v1/products/:id (show)
+
+Return a single product by id.
+
+```ruby
+# GET /api/v1/products/:id
+def show
+  render json: @product
+end
+```
+
+**curl**
+```bash
+curl http://localhost:3000/api/v1/products/1
+```
+
+**Response** `200 OK`
+```json
+{ "id": 1, "name": "Widget", "category_id": 1, "created_at": "...", "updated_at": "..." }
+```
+
+**Not found** `404 Not Found`
+```json
+{ "error": "Product not found" }
+```
+
+---
+
+### Step 6 — POST /api/v1/products (create)
+
+Create a new product. Returns `201 Created` on success or `422` with error messages on failure.
+
+```ruby
+# POST /api/v1/products
+def create
+  @product = Product.new(product_params)
+  if @product.save
+    render json: @product, status: :created
+  else
+    render json: { errors: @product.errors.full_messages }, status: :unprocessable_entity
+  end
+end
+```
+
+**curl**
+```bash
+curl -X POST http://localhost:3000/api/v1/products \
+  -H "Content-Type: application/json" \
+  -d '{"product": {"name": "Widget", "category_id": 1}}'
+```
+
+**Response** `201 Created`
+```json
+{ "id": 3, "name": "Widget", "category_id": 1, "created_at": "...", "updated_at": "..." }
+```
+
+**Validation failure** `422 Unprocessable Entity`
+```json
+{ "errors": ["Name can't be blank"] }
+```
+
+---
+
+### Step 7 — PATCH /api/v1/products/:id (update)
+
+Update an existing product. Returns the updated record or `422` on failure.
+
+```ruby
+# PATCH/PUT /api/v1/products/:id
+def update
+  if @product.update(product_params)
+    render json: @product
+  else
+    render json: { errors: @product.errors.full_messages }, status: :unprocessable_entity
+  end
+end
+```
+
+**curl**
+```bash
+curl -X PATCH http://localhost:3000/api/v1/products/1 \
+  -H "Content-Type: application/json" \
+  -d '{"product": {"name": "Updated Widget"}}'
+```
+
+**Response** `200 OK`
+```json
+{ "id": 1, "name": "Updated Widget", "category_id": 1, "created_at": "...", "updated_at": "..." }
+```
+
+---
+
+### Step 8 — DELETE /api/v1/products/:id (destroy)
+
+Delete a product. Returns `204 No Content` with an empty body.
+
+```ruby
+# DELETE /api/v1/products/:id
+def destroy
+  @product.destroy
+  head :no_content
+end
+```
+
+**curl**
+```bash
+curl -X DELETE http://localhost:3000/api/v1/products/1
+```
+
+**Response** `204 No Content` *(empty body)*
+
+---
+
+### Complete controller (all steps combined)
+
+```ruby
+# app/controllers/api/v1/products_controller.rb
+module Api
+  module V1
+    class ProductsController < BaseController
+      before_action :set_product, only: [:show, :update, :destroy]
+
+      def index
+        @products = Product.all
+        render json: @products
+      end
+
+      def show
+        render json: @product
+      end
+
+      def create
+        @product = Product.new(product_params)
+        if @product.save
+          render json: @product, status: :created
+        else
+          render json: { errors: @product.errors.full_messages }, status: :unprocessable_entity
+        end
+      end
+
+      def update
+        if @product.update(product_params)
+          render json: @product
+        else
+          render json: { errors: @product.errors.full_messages }, status: :unprocessable_entity
+        end
+      end
+
+      def destroy
+        @product.destroy
+        head :no_content
+      end
+
+      private
+
+      def set_product
+        @product = Product.find(params[:id])
+      rescue ActiveRecord::RecordNotFound
+        render json: { error: "Product not found" }, status: :not_found
+      end
+
+      def product_params
+        params.require(:product).permit(:name, :category_id)
+      end
+    end
+  end
+end
+```
+
+---
+
+### Endpoint summary
+
+| Step | Method | Path | Action | Success status |
+|---|---|---|---|---|
+| 4 | GET | `/api/v1/products` | List all products | `200 OK` |
+| 5 | GET | `/api/v1/products/:id` | Show one product | `200 OK` |
+| 6 | POST | `/api/v1/products` | Create a product | `201 Created` |
+| 7 | PATCH/PUT | `/api/v1/products/:id` | Update a product | `200 OK` |
+| 8 | DELETE | `/api/v1/products/:id` | Delete a product | `204 No Content` |
 
 ---
