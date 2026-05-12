@@ -613,7 +613,7 @@ Return all products as JSON.
 # GET /api/v1/products
 def index
   @products = Product.all
-  render json: @products
+  render json: @products, status: :ok
 end
 ```
 
@@ -639,7 +639,7 @@ Return a single product by id.
 ```ruby
 # GET /api/v1/products/:id
 def show
-  render json: @product
+  render json: @product, status: :ok
 end
 ```
 
@@ -703,7 +703,7 @@ Update an existing product. Returns the updated record or `422` on failure.
 # PATCH/PUT /api/v1/products/:id
 def update
   if @product.update(product_params)
-    render json: @product
+    render json: @product, status: :ok
   else
     render json: { errors: @product.errors.full_messages }, status: :unprocessable_entity
   end
@@ -731,8 +731,11 @@ Delete a product. Returns `204 No Content` with an empty body.
 ```ruby
 # DELETE /api/v1/products/:id
 def destroy
-  @product.destroy
-  head :no_content
+  if @product.destroy
+    render json: { message: "Product deleted successfully" }, status: :ok
+  else
+    render json: { errors: @product.errors.full_messages }, status: :unprocessable_entity
+  end
 end
 ```
 
@@ -756,11 +759,11 @@ module Api
 
       def index
         @products = Product.all
-        render json: @products
+        render json: @products, status: :ok
       end
 
       def show
-        render json: @product
+        render json: @product, status: :ok
       end
 
       def create
@@ -774,15 +777,18 @@ module Api
 
       def update
         if @product.update(product_params)
-          render json: @product
+          render json: @product, status: :ok
         else
           render json: { errors: @product.errors.full_messages }, status: :unprocessable_entity
         end
       end
 
       def destroy
-        @product.destroy
-        head :no_content
+        if @product.destroy
+          render json: { message: "Product deleted successfully" }, status: :ok
+        else
+          render json: { errors: @product.errors.full_messages }, status: :unprocessable_entity
+        end
       end
 
       private
