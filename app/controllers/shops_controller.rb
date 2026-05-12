@@ -11,6 +11,7 @@ class ShopsController < ApplicationController
 
   def new
     @shop = Shop.new
+    @all_products = Product.order(:name)
   end
 
   def create
@@ -23,6 +24,7 @@ class ShopsController < ApplicationController
   end
 
   def edit
+    @all_products = Product.order(:name)
   end
 
   def update
@@ -45,6 +47,6 @@ class ShopsController < ApplicationController
   end
 
   def shop_params
-    params.require(:shop).permit(:name)
+    params.require(:shop).permit(:name, product_ids: [])
   end
 end
