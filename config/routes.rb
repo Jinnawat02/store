@@ -13,7 +13,7 @@ Rails.application.routes.draw do
   # root "posts#index"
   #
 
-  root "products#index"
+  root "home#index"
   resources :products
   resources :categories
   resources :shops
